@@ -1,12 +1,6 @@
-# import telepot
 import json # parse json responses from telegram into python dictionaries
 import requests # make web requests using python, interact with telegram API
-
-#
-# TelegramBot = telepot.Bot(token)
-# print( TelegramBot.getMe())
-#
-# print(TelegramBot.getUpdates(33894979+1))
+import time
 
 TOKEN = "586549666:AAHgb31bgnRj-ZmdKj2DDmYt_Us6OpfAK1o"
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
@@ -48,5 +42,16 @@ def send_message(text, chat_id):
     get_url(url)
 
 
-text, chat = get_last_chat_id_and_text(get_updates())
-send_message(text, chat)
+# this is so we can import our functions into another script
+# without running anything
+def main():
+    last_textchat = (None, None)
+    while True:
+        text, chat = get_last_chat_id_and_text(get_updates())
+        if (text, chat) != last_textchat:
+            send_message(text, chat)
+            last_textchat = (text, chat)
+        time.sleep(0.5) 
+
+if __name__ == '__main__':
+    main()
