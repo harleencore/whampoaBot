@@ -1,6 +1,7 @@
 import json # parse json responses from telegram into python dictionaries
 import requests # make web requests using python, interact with telegram API
 import time
+import urllib
 
 TOKEN = "679424726:AAFhyVf602gZxaS0pEIfyiVwqOA7KASWbmw"
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
@@ -44,6 +45,7 @@ def get_last_chat_id_and_text(updates):
 
 # takes text message and chat_id of intended recipient + sends msg
 def send_message(text, chat_id):
+    text = urllib.parse.quote_plus(text)
     url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
     get_url(url)
 
