@@ -70,18 +70,18 @@ def handle_updates(updates):
             # grab text and chat components
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
-            items = db.get_items()
+            items = db.get_items(chat)
             if text == "/done":
                 keyboard = build_keyboard(items)
                 send_message("Select an item to delete", chat, keyboard)
             elif text in items:
-                db.delete_item(text) # if item is duplicate, delete
-                items = db.get_items() # update items variable
+                db.delete_item(text, chat) # if item is duplicate, delete
+                items = db.get_items(chat) # update items variable
                 keyboard = build_keyboard(items)
                 send_message("Select an item to delete", chat, keyboard)
             else:
-                db.add_item(text) # if item not in list, add it
-                items = db.get_items() # update items variable
+                db.add_item(text, chat) # if item not in list, add it
+                items = db.get_items(chat) # update items variable
                 message = "\n".join(items) # message is a list of all items
                 send_message(message, chat) # print (send) updated list
         except KeyError:
