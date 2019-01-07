@@ -10,21 +10,22 @@ class DBHelper:
     # creates a new table called items in the db
     # it has one column, description
     def setup(self):
-        stmt = "CREATE TABLE IF NOT EXISTS items (description text)"
+        print("creating table")
+        stmt = "CREATE TABLE IF NOT EXISTS items (description text, owner text)"
         self.conn.execute(stmt)
         self.conn.commit()
 
     # takes the text for the item and inserts it into the db table
     def add_item(self, item_text):
-        stmt = "INSERT INTO items (description) VALUES (?)"
-        args = (item_text, )
+        stmt = "INSERT INTO items (description, owner) VALUES (?, ?)"
+        args = (item_text, owner)
         self.conn.execute(stmt, args)
         self.conn.commit()
 
     # takes the text for an item and removes it from the database
     def delete_item(self, item_text):
-        stmt = "DELETE FROM items WHERE description = (?)"
-        args = (item_text, )
+        stmt = "DELETE FROM items WHERE description = (?) AND owner = (?)"
+        args = (item_text, owner )
         self.conn.execute(stmt, args)
         self.conn.commit()
 
@@ -33,5 +34,6 @@ class DBHelper:
     # SQLite will always return data in tuple format, even when there is only
     # one column
     def get_items(self):
-        stmt = "SELECT description FROM items"
-        return [x[0] for x in self.conn.execute(stmt)]
+        stmt = "SELECT description FROM items WHERE owner = (?)"
+        args = (owner, )
+        return [x[0] for x in self.conn.execute(stmt, args)]
