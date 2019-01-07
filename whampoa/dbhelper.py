@@ -10,9 +10,12 @@ class DBHelper:
     # creates a new table called items in the db
     # it has one column, description
     def setup(self):
-        print("creating table")
-        stmt = "CREATE TABLE IF NOT EXISTS items (description text, owner text)"
-        self.conn.execute(stmt)
+        tblstmt = "CREATE TABLE IF NOT EXISTS items (description text, owner text)"
+        itemidx = "CREATE INDEX IF NOT EXISTS itemIndex ON items (description ASC)"
+        ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON items (owner ASC)"
+        self.conn.execute(tblstmt)
+        self.conn.execute(itemidx)
+        self.conn.execute(ownidx)
         self.conn.commit()
 
     # takes the text for the item and inserts it into the db table
