@@ -50,6 +50,9 @@ def send_message(text, chat_id, reply_markup=None):
     text = urllib.parse.quote_plus(text)
     url = URL + "sendMessage?text={}&chat_id={}&parse_mode=Markdown".format(text, chat_id)
     if reply_markup:
+        # since we built the entire keyboard object in build_keyboard(),
+        # we can pass it along to telegram in this function whenever neccesary
+        # reply_markup has the keyboard ALONG WITH vals like one_time_keyboard = True
         url += "&reply_markup={}".format(reply_markup)
     get_url(url)
 
@@ -68,14 +71,19 @@ def handle_updates(updates):
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
             items = db.get_items()
-            if text in items:
+            if text == "/done":
+                keyboard = build_keyboard(items)
+                send_message("Select an item to delete", chat, keyboard)
+            elif text in items:
                 db.delete_item(text) # if item is duplicate, delete
                 items = db.get_items() # update items variable
+                keyboard = build_keyboard(items)
+                send_message("Select an item to delete", chat, keyboard)
             else:
                 db.add_item(text) # if item not in list, add it
                 items = db.get_items() # update items variable
-            message = "\n".join(items) # message is a list of all items
-            send_message(message, chat) # print (send) updated list
+                message = "\n".join(items) # message is a list of all items
+                send_message(message, chat) # print (send) updated list
         except KeyError:
             pass
 
