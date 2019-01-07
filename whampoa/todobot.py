@@ -46,9 +46,11 @@ def get_last_chat_id_and_text(updates):
 
 
 # takes text message and chat_id of intended recipient + sends msg
-def send_message(text, chat_id):
+def send_message(text, chat_id, reply_markup=None):
     text = urllib.parse.quote_plus(text)
-    url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
+    url = URL + "sendMessage?text={}&chat_id={}&parse_mode=Markdown".format(text, chat_id)
+    if reply_markup:
+        url += "&reply_markup={}".format(reply_markup)
     get_url(url)
 
 # calculates highest ID of all the updates
@@ -76,6 +78,18 @@ def handle_updates(updates):
             send_message(message, chat) # print (send) updated list
         except KeyError:
             pass
+
+def build_keyboard(items):
+    # construct a list of items:
+    keyboard = [[item] for item in items] # turn each item into a list
+    # each sub-list in the keyboard list will be an entire row of the keyboard
+    # one_time_keyboard indicates that the keyboard should disappear once
+    # the user has made a choice
+    reply_markup = {"keyboard":keyboard, "one_time_keyboard": True}
+    return json.dumps(reply_markup) # convert python dict into json string
+    # telegrm's API expects this!
+
+
 
 
 # this is so we can import our functions into another script
