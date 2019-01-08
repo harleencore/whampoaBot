@@ -70,30 +70,30 @@ def handle_updates(updates):
             # grab text and chat components
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
-            items = db.get_items(chat)
+            kids = db.get_kids(chat)
             if text == "/done":
-                keyboard = build_keyboard(items)
+                keyboard = build_keyboard(kids)
                 send_message("Select an item to delete", chat, keyboard)
             elif text == "/start":
                 send_message("Welcome to the FeedbackBot! Send any text to me and I'll store it as feedback. Send /done to remove items", chat)
             elif text.startswith("/"):
                 continue
-            elif text in items:
+            elif text in kids:
                 db.delete_item(text, chat) # if item is duplicate, delete
-                items = db.get_items(chat) # update items variable
-                keyboard = build_keyboard(items)
+                kids = db.get_kids(chat) # update kids variable
+                keyboard = build_keyboard(kids)
                 send_message("Select an item to delete", chat, keyboard)
             else:
                 db.add_item(text, chat) # if item not in list, add it
-                items = db.get_items(chat) # update items variable
-                message = "\n".join(items) # message is a list of all items
+                kids = db.get_kids(chat) # update kids variable
+                message = "\n".join(kids) # message is a list of all kids
                 send_message(message, chat) # print (send) updated list
         except KeyError:
             pass
 
-def build_keyboard(items):
-    # construct a list of items:
-    keyboard = [[item] for item in items] # turn each item into a list
+def build_keyboard(kids):
+    # construct a list of kids:
+    keyboard = [[item] for item in kids] # turn each item into a list
     # each sub-list in the keyboard list will be an entire row of the keyboard
     # one_time_keyboard indicates that the keyboard should disappear once
     # the user has made a choice

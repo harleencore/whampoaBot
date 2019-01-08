@@ -10,7 +10,7 @@ class DBHelper:
     # creates a new table called items in the db
     # it has one column, description
     def setup(self):
-        tblstmt = "CREATE TABLE IF NOT EXISTS items (description text, owner text)"
+        tblstmt = "CREATE TABLE IF NOT EXISTS items (description text, owner text, kid_name text)"
         itemidx = "CREATE INDEX IF NOT EXISTS itemIndex ON items (description ASC)"
         ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON items (owner ASC)"
         self.conn.execute(tblstmt)
@@ -19,16 +19,16 @@ class DBHelper:
         self.conn.commit()
 
     # takes the text for the item and inserts it into the db table
-    def add_item(self, item_text, owner):
-        stmt = "INSERT INTO items (description, owner) VALUES (?, ?)"
-        args = (item_text, owner)
+    def add_item(self, item_text, owner, kid_name):
+        stmt = "INSERT INTO items (description, owner, kid_name) VALUES (?, ?, ?)"
+        args = (item_text, owner, kid_name)
         self.conn.execute(stmt, args)
         self.conn.commit()
 
     # takes the text for an item and removes it from the database
-    def delete_item(self, item_text, owner):
-        stmt = "DELETE FROM items WHERE description = (?) AND owner = (?)"
-        args = (item_text, owner )
+    def delete_item(self, item_text, owner, kid_name):
+        stmt = "DELETE FROM items WHERE description = (?) AND owner = (?) AND kid_name = (?)"
+        args = (item_text, owner, kid_name)
         self.conn.execute(stmt, args)
         self.conn.commit()
 
@@ -36,7 +36,12 @@ class DBHelper:
     # use a list comprehension to take the first element of each item
     # SQLite will always return data in tuple format, even when there is only
     # one column
-    def get_items(self, owner):
-        stmt = "SELECT description FROM items WHERE owner = (?)"
-        args = (owner, )
+    def get_items(self, owner, kid_name):
+        stmt = "SELECT description FROM items WHERE owner = (?) AND kid_name = (?)"
+        args = (owner, kid_name)
+        return [x[0] for x in self.conn.execute(stmt, args)]
+
+    def get_kids(self, owner, kid_name):
+        stmt = "SELECT kid_name FROM items WHERE kid_name = (?)"
+        args = (owner, kid_name)
         return [x[0] for x in self.conn.execute(stmt, args)]
