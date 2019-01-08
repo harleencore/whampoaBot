@@ -3,7 +3,7 @@ import sqlite3
 class DBHelper:
 
     # just takes a db name and creates a db connection
-    def __init__(self, dbname="feedback.sqlite"):
+    def __init__(self, dbname="todo.sqlite"):
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname)
 
