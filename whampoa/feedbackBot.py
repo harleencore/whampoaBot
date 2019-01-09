@@ -71,9 +71,9 @@ def handle_updates(updates):
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
             kids = db.get_kids(chat)
-            if text == "/done":
+            if text == "/ffedback":
                 keyboard = build_keyboard(kids)
-                send_message("Select an item to delete", chat, keyboard)
+                send_message("Select a kid to submit feedback for", chat, keyboard)
             elif text == "/start":
                 send_message("Welcome to the FeedbackBot! Send any text to me and I'll store it as feedback. Send /done to remove items", chat)
             elif text.startswith("/"):
