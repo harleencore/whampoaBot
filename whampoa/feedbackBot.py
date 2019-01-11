@@ -71,9 +71,12 @@ def handle_updates(updates):
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
             kids = db.get_kids(chat)
-            if text == "/ffedback":
+            if text == "/feedback":
                 keyboard = build_keyboard(kids)
                 send_message("Select a kid to submit feedback for", chat, keyboard)
+            if text == "/view":
+                keyboard = build_keyboard(kids)
+                send_message("Select a kid to view feedback for", chat, keyboard)
             elif text == "/start":
                 send_message("Welcome to the FeedbackBot! Send any text to me and I'll store it as feedback. Send /done to remove items", chat)
             elif text.startswith("/"):
@@ -93,7 +96,7 @@ def handle_updates(updates):
 
 def build_keyboard(kids):
     # construct a list of kids:
-    keyboard = [[item] for item in kids] # turn each item into a list
+    keyboard = [[kid] for kid in kids] # turn each kid into a list
     # each sub-list in the keyboard list will be an entire row of the keyboard
     # one_time_keyboard indicates that the keyboard should disappear once
     # the user has made a choice
