@@ -78,7 +78,7 @@ def handle_updates(updates):
                 keyboard = build_keyboard(kids)
                 send_message("Select a kid to view feedback for", chat, keyboard)
             elif text == "/start":
-                send_message("Welcome to the FeedbackBot! Send any text to me and I'll store it as feedback. Send /done to remove items", chat)
+                send_message("Welcome to the FeedbackBot! Send any text to me and I'll store it as feedback.", chat)
             elif text.startswith("/"):
                 continue
             elif text in kids:
