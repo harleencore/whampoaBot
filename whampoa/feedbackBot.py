@@ -8,7 +8,6 @@ db = DBHelper()
 TOKEN = "679424726:AAFhyVf602gZxaS0pEIfyiVwqOA7KASWbmw"
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
-
 # download content from URL and give us a string
 def get_url(url):
     response = requests.get(url)
@@ -25,10 +24,6 @@ def get_json_from_url(url):
 def get_updates(offset=None):
     url = URL + "getUpdates?timeout=100" # with long polling
     if offset:
-        # changed from:
-        # ?offset to &offset because '?' indicates that the argument list is
-        # starting and now it starts with ?timeout
-        # '&' seperates further arguments
         url += "&offset={}".format(offset)
     js = get_json_from_url(url) # get UPDATES from URL, parse into dictionary
     return js
@@ -50,7 +45,7 @@ def send_message(text, chat_id, reply_markup=None):
     text = urllib.parse.quote_plus(text)
     url = URL + "sendMessage?text={}&chat_id={}&parse_mode=Markdown".format(text, chat_id)
     if reply_markup:
-        # since we built the entire keyboard object in build_keyboard(),
+        # since we built the entire keyboard object in build_kids_keyboard(),
         # we can pass it along to telegram in this function whenever neccesary
         # reply_markup has the keyboard ALONG WITH vals like one_time_keyboard = True
         url += "&reply_markup={}".format(reply_markup)
@@ -65,36 +60,51 @@ def get_last_update_id(updates):
     return max(update_ids)
 
 def handle_updates(updates):
+    give_feedback = False # by default, you're only viewing
+    kid = ""
+    subject = ""
     for update in updates["result"]: # loop through each update
         try:
             # grab text and chat components
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
             kids = db.get_kids(chat)
+            subjects = db.get_kids(chat)
             if text == "/feedback":
-                keyboard = build_keyboard(kids)
+                keyboard = build_kids_keyboard(kids)
                 send_message("Select a kid to submit feedback for", chat, keyboard)
+                give_feedback = True
             if text == "/view":
-                keyboard = build_keyboard(kids)
+                keyboard = build_kids_keyboard(kids)
                 send_message("Select a kid to view feedback for", chat, keyboard)
+                give_feedback = False
             elif text == "/start":
                 send_message("Welcome to the FeedbackBot! Send any text to me and I'll store it as feedback.", chat)
             elif text.startswith("/"):
                 continue
-            elif text in kids:
-                db.delete_item(text, chat) # if item is duplicate, delete
-                kids = db.get_kids(chat) # update kids variable
-                keyboard = build_keyboard(kids)
-                send_message("Select an item to delete", chat, keyboard)
+            elif text in kids: # if a kid was selected
+                kid = text # set current kid
+                keyboard = build_subject_keyboard(subjects)
+                if give_feedback:
+                    send_message("Select a subject to submit feedback for")
+                else:
+                    send_message("Select a subject to view feedback for")
+
+
             else:
-                db.add_item(text, chat) # if item not in list, add it
-                kids = db.get_kids(chat) # update kids variable
-                message = "\n".join(kids) # message is a list of all kids
-                send_message(message, chat) # print (send) updated list
+                if subject and kid:
+                    db.add_item(text, chat, kid, subject)
+                    # observations = db.get_kids(chat) # update kids variable
+                    # message = "\n".join(kids) # message is a list of all kids
+                    # send_message(message, chat) # print (send) updated list
+                else:
+                    send_message("Please select a kid and subject first.")
+
+
         except KeyError:
             pass
 
-def build_keyboard(kids):
+def build_kids_keyboard(kids):
     # construct a list of kids:
     keyboard = [[kid] for kid in kids] # turn each kid into a list
     # each sub-list in the keyboard list will be an entire row of the keyboard

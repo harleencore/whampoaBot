@@ -3,40 +3,44 @@ import sqlite3
 class DBHelper:
 
     # just takes a db name and creates a db connection
-    def __init__(self, dbname="todo.sqlite"):
+    def __init__(self, dbname="whampoa.sqlite"):
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname)
 
-    # creates a new table called items in the db
-    # it has one column, feedback
+    # creates a new table called feedback in the db
+    # it has  columns, observations, owner, child, subject
     def setup(self):
-        tblstmt = "CREATE TABLE IF NOT EXISTS items (feedback text, owner text)"
-        itemidx = "CREATE INDEX IF NOT EXISTS itemIndex ON items (feedback ASC)"
-        ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON items (owner ASC)"
-        self.conn.execute(tblstmt)
-        self.conn.execute(itemidx)
+        tblstmt = "CREATE TABLE IF NOT EXISTS feedback (observations text, owner text, child text, subject text)"
+        # adding indexing
+        feedbackidx = "CREATE INDEX IF NOT EXISTS feedbackIndex ON feedback (observations ASC)"
+        ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON feedback (owner ASC)"
+        self.conn.execute(tblstmt) # create the table
+        self.conn.execute(feedbackidx)
         self.conn.execute(ownidx)
         self.conn.commit()
 
-    # takes the text for the item and inserts it into the db table
-    def add_item(self, item_text, owner):
-        stmt = "INSERT INTO items (feedback, owner) VALUES (?, ?)"
-        args = (item_text, owner)
+    # takes the text for the feedback and inserts it into the db table
+    def add_feedback(self, feedback_text, owner, child, subject):
+        stmt = "INSERT INTO feedback (observations, owner, child, subject) VALUES (?, ?)"
+        args = (feedback_text, owner, child, subject)
         self.conn.execute(stmt, args)
         self.conn.commit()
 
-    # takes the text for an item and removes it from the database
-    def delete_item(self, item_text, owner):
-        stmt = "DELETE FROM items WHERE feedback = (?) AND owner = (?)"
-        args = (item_text, owner )
-        self.conn.execute(stmt, args)
-        self.conn.commit()
+    # removing delete function temporarily
+    # # takes the text for an feedback and removes it from the database
+    # def delete_feedback(self, feedback_text, owner):
+    #     stmt = "DELETE FROM feedback WHERE observations = (?) AND owner = (?)"
+    #     args = (feedback_text, owner )
+    #     self.conn.execute(stmt, args)
+    #     self.conn.commit()
 
-    # returns a list of all items in our database
-    # use a list comprehension to take the first element of each item
-    # SQLite will always return data in tuple format, even when there is only
-    # one column
-    def get_items(self, owner):
-        stmt = "SELECT feedback FROM items WHERE owner = (?)"
+    # check syntax
+    def get_feedback(self, owner, child, subject):
+        stmt = "SELECT observations FROM feedback WHERE owner = (?) AND child = (?) AND subject = (?)"
+        args = (owner, child, subject, )
+        return [x[0] for x in self.conn.execute(stmt, args)]
+
+    def get_kids(self, owner, child):
+        stmt = "SELECT child FROM feedback WHERE owner = (?)"
         args = (owner, )
         return [x[0] for x in self.conn.execute(stmt, args)]
