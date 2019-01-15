@@ -45,7 +45,7 @@ def send_message(text, chat_id, reply_markup=None):
     text = urllib.parse.quote_plus(text)
     url = URL + "sendMessage?text={}&chat_id={}&parse_mode=Markdown".format(text, chat_id)
     if reply_markup:
-        # since we built the entire keyboard object in build_kids_keyboard(),
+        # since we built the entire keyboard object in build_items_keyboard(),
         # we can pass it along to telegram in this function whenever neccesary
         # reply_markup has the keyboard ALONG WITH vals like one_time_keyboard = True
         url += "&reply_markup={}".format(reply_markup)
@@ -63,19 +63,19 @@ def handle_updates(updates):
     give_feedback = False # by default, you're only viewing
     kid = ""
     subject = ""
+    subjects = [] #??????
     for update in updates["result"]: # loop through each update
         try:
             # grab text and chat components
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
             kids = db.get_kids(chat)
-            subjects = db.get_kids(chat)
             if text == "/feedback":
-                keyboard = build_kids_keyboard(kids)
+                keyboard = build_items_keyboard(kids)
                 send_message("Select a kid to submit feedback for", chat, keyboard)
                 give_feedback = True
-            if text == "/view":
-                keyboard = build_kids_keyboard(kids)
+            elif text == "/view":
+                keyboard = build_items_keyboard(kids)
                 send_message("Select a kid to view feedback for", chat, keyboard)
                 give_feedback = False
             elif text == "/start":
@@ -84,11 +84,17 @@ def handle_updates(updates):
                 continue
             elif text in kids: # if a kid was selected
                 kid = text # set current kid
-                keyboard = build_subject_keyboard(subjects)
+                subjects = db.get_kids(chat, kid)
+                keyboard = build_items_keyboard(subjects)
                 if give_feedback:
                     send_message("Select a subject to submit feedback for")
+                    keyboard = build_items_keyboard(subjects)
                 else:
                     send_message("Select a subject to view feedback for")
+                    keyboard = build_items_keyboard(subjects)
+            elif text in subjects:
+
+
 
 
             else:
@@ -104,15 +110,11 @@ def handle_updates(updates):
         except KeyError:
             pass
 
-def build_kids_keyboard(kids):
-    # construct a list of kids:
-    keyboard = [[kid] for kid in kids] # turn each kid into a list
-    # each sub-list in the keyboard list will be an entire row of the keyboard
-    # one_time_keyboard indicates that the keyboard should disappear once
-    # the user has made a choice
+def build_items_keyboard(items):
+    keyboard = [[item] for item in items]
     reply_markup = {"keyboard":keyboard, "one_time_keyboard": True}
-    return json.dumps(reply_markup) # convert python dict into json string
-    # telegrm's API expects this!
+    return json.dumps(reply_markup)
+
 
 
 

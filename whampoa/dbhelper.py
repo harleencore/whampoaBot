@@ -40,7 +40,12 @@ class DBHelper:
         args = (owner, child, subject, )
         return [x[0] for x in self.conn.execute(stmt, args)]
 
-    def get_kids(self, owner, child):
+    def get_kids(self, owner):
         stmt = "SELECT child FROM feedback WHERE owner = (?)"
+        args = (owner, )
+        return [x[0] for x in self.conn.execute(stmt, args)]
+
+    def get_subjects(self, owner, kid):
+        stmt = "SELECT subject FROM feedback WHERE owner = (?) AND child = (?)"
         args = (owner, )
         return [x[0] for x in self.conn.execute(stmt, args)]
