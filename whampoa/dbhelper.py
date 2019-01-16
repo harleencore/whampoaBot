@@ -8,9 +8,9 @@ class DBHelper:
         self.conn = sqlite3.connect(dbname)
 
     # creates a new table called feedback in the db
-    # it has  columns, observations, owner, child, subject
+    # it has  columns: observations, owner, children, subjects
     def setup(self):
-        tblstmt = "CREATE TABLE IF NOT EXISTS feedback (observations text, owner text, child text, subject text)"
+        tblstmt = "CREATE TABLE IF NOT EXISTS feedback (observations text, owner text, children text, subjects text)"
         # adding indexing
         feedbackidx = "CREATE INDEX IF NOT EXISTS feedbackIndex ON feedback (observations ASC)"
         ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON feedback (owner ASC)"
@@ -20,9 +20,9 @@ class DBHelper:
         self.conn.commit()
 
     # takes the text for the feedback and inserts it into the db table
-    def add_feedback(self, feedback_text, owner, child, subject):
-        stmt = "INSERT INTO feedback (observations, owner, child, subject) VALUES (?, ?)"
-        args = (feedback_text, owner, child, subject)
+    def add_feedback(self, feedback_text, owner, children, subjects):
+        stmt = "INSERT INTO feedback (observations, owner, children, subjects) VALUES (?, ?)"
+        args = (feedback_text, owner, children, subjects)
         self.conn.execute(stmt, args)
         self.conn.commit()
 
@@ -35,17 +35,17 @@ class DBHelper:
     #     self.conn.commit()
 
     # check syntax
-    def get_feedback(self, owner, child, subject):
-        stmt = "SELECT observations FROM feedback WHERE owner = (?) AND child = (?) AND subject = (?)"
-        args = (owner, child, subject, )
+    def get_feedback(self, owner, children, subjects):
+        stmt = "SELECT observations FROM feedback WHERE owner = (?) AND children = (?) AND subjects = (?)"
+        args = (owner, children, subjects, )
         return [x[0] for x in self.conn.execute(stmt, args)]
 
-    def get_kids(self, owner):
-        stmt = "SELECT child FROM feedback WHERE owner = (?)"
+    def get_children(self, owner):
+        stmt = "SELECT children FROM feedback WHERE owner = (?)"
         args = (owner, )
         return [x[0] for x in self.conn.execute(stmt, args)]
 
     def get_subjects(self, owner, kid):
-        stmt = "SELECT subject FROM feedback WHERE owner = (?) AND child = (?)"
+        stmt = "SELECT subjects FROM feedback WHERE owner = (?) AND children = (?)"
         args = (owner, )
         return [x[0] for x in self.conn.execute(stmt, args)]

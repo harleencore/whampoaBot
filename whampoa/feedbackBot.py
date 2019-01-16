@@ -61,50 +61,47 @@ def get_last_update_id(updates):
 
 def handle_updates(updates):
     give_feedback = False # by default, you're only viewing
-    kid = ""
+    child = ""
     subject = ""
-    subjects = [] #??????
+    subjects = []
     for update in updates["result"]: # loop through each update
         try:
             # grab text and chat components
             text = update["message"]["text"] # check message text
             chat = update["message"]["chat"]["id"] # check user who sent msg
-            kids = db.get_kids(chat)
+            children = db.get_children(chat)
             if text == "/feedback":
-                keyboard = build_items_keyboard(kids)
-                send_message("Select a kid to submit feedback for", chat, keyboard)
+                keyboard = build_items_keyboard(children)
+                send_message("Select a child to submit feedback for", chat, keyboard)
                 give_feedback = True
             elif text == "/view":
-                keyboard = build_items_keyboard(kids)
-                send_message("Select a kid to view feedback for", chat, keyboard)
+                keyboard = build_items_keyboard(children)
+                send_message("Select a child to view feedback for", chat, keyboard)
                 give_feedback = False
-            elif text == "/start":
-                send_message("Welcome to the FeedbackBot! Send any text to me and I'll store it as feedback.", chat)
-            elif text.startswith("/"):
-                continue
-            elif text in kids: # if a kid was selected
-                kid = text # set current kid
-                subjects = db.get_kids(chat, kid)
+            elif text in children: # if a child was selected
+                child = text # set current child
+                subjects = db.get_subjects(chat, child)
                 keyboard = build_items_keyboard(subjects)
                 if give_feedback:
-                    send_message("Select a subject to submit feedback for")
-                    keyboard = build_items_keyboard(subjects)
+                    send_message("Select a subject to submit feedback for", chat, keyboard)
                 else:
-                    send_message("Select a subject to view feedback for")
-                    keyboard = build_items_keyboard(subjects)
+                    send_message("Select a subject to view feedback for", chat, keyboard)
             elif text in subjects:
-
-
-
-
-            else:
-                if subject and kid:
-                    db.add_item(text, chat, kid, subject)
-                    # observations = db.get_kids(chat) # update kids variable
-                    # message = "\n".join(kids) # message is a list of all kids
-                    # send_message(message, chat) # print (send) updated list
+                subject = text
+                if give_feedback:
+                    send_message("Adding " + subject +" feedback for " + child)
+                    add_feedback(text, chat, child, subject)
                 else:
-                    send_message("Please select a kid and subject first.")
+                    send_message("Showing " + subject + " feedback for " + child)
+                    feedback = get_feedback(chat, child, subject)
+                    message = "\n".join(feedback)
+                    send_message(message, chat)
+
+            elif text == "/start":
+                send_message("Welcome to the FeedbackBot! Send /feedback to submit feedback, or /view to pull up a list of past committed feedback.", chat)
+            elif text.startswith("/"):
+                continue
+
 
 
         except KeyError:
