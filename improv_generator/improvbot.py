@@ -74,12 +74,14 @@ def handle_updates(updates):
             if text == "/generate":
                 keyboard = build_keyboard(items)
                 send_message("Select a category", chat, keyboard)
+            elif text in categories:
+                db.get_scneario(text) # write this code!
             elif text == "/start":
                 send_message("Welcome to your the improvBot! Send /generate to start the fun!", chat)
             elif text.startswith("/"):
                 continue
             else:
-                category = 
+                category =
                 db.add_item(text, chat) # if item not in list, add it
                 items = db.get_items(chat) # update items variable
                 message = "\n".join(items) # message is a list of all items
