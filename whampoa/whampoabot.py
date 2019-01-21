@@ -10,6 +10,8 @@ URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
 
 add = False
+child = ""
+feedback_mode = False
 
 # download content from URL and give us a string
 def get_url(url):
@@ -60,6 +62,8 @@ def get_last_update_id(updates):
 
 def handle_updates(updates):
     global add
+    global child
+    global feedback_mode
     for update in updates["result"]:
         try:
             text = update["message"]["text"]
@@ -71,12 +75,18 @@ def handle_updates(updates):
                     send_message("Select a child to submit feedback for", chat, keyboard)
                 elif text in children:
                     send_message("Sending feedback for: " + text, chat)
+                    child = text
+                    feedback_mode = True
                 if text == "/add_child":
                     send_message("Please enter name", chat)
                     add = True
             else:
                 db.add_child(text, chat)
                 add = False
+            if feedback_mode:
+                send_message("It worked!")
+                feedback_mode = False
+
         except KeyError:
             pass
 
