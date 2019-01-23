@@ -10,15 +10,16 @@ class DBHelper:
     # creates a new table called feedback in the db
     # it has  columns: observations, owner, children, subjects
     def setup(self):
-        # tblstmt = "CREATE TABLE IF NOT EXISTS feedback (observations text, owner text, children text, subjects text)"
-        # # adding indexing
-        # feedbackidx = "CREATE INDEX IF NOT EXISTS feedbackIndex ON feedback (observations ASC)"
-        # ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON feedback (owner ASC)"
-        #
-        # self.conn.execute(tblstmt) # create the table
-        # self.conn.execute(feedbackidx)
-        # self.conn.execute(ownidx)
-        # self.conn.commit()
+        ##### FIGURE OUT FOREIGN KEYS!!!
+        tblstmt = "CREATE TABLE IF NOT EXISTS feedback (observations text, owner text, children text, subjects text)"
+        # adding indexing
+        feedbackidx = "CREATE INDEX IF NOT EXISTS feedbackIndex ON feedback (observations ASC)"
+        ownidx = "CREATE INDEX IF NOT EXISTS ownIndex ON feedback (owner ASC)"
+
+        self.conn.execute(tblstmt) # create the table
+        self.conn.execute(feedbackidx)
+        self.conn.execute(ownidx)
+        self.conn.commit()
 
         tblstmt_children = "CREATE TABLE IF NOT EXISTS children_table (children text, owner text)"
         feedbackidx_children = "CREATE INDEX IF NOT EXISTS childrenIndex ON children_table (children ASC)"
@@ -29,12 +30,12 @@ class DBHelper:
         self.conn.execute(ownidx_children)
         self.conn.commit()
 
-    # # takes the text for the feedback and inserts it into the db table
-    # def add_feedback(self, feedback_text, owner, children, subjects):
-    #     stmt = "INSERT INTO feedback (observations, owner, children, subjects) VALUES (?, ?)"
-    #     args = (feedback_text, owner, children, subjects)
-    #     self.conn.execute(stmt, args)
-    #     self.conn.commit()
+    # takes the text for the feedback and inserts it into the db table
+    def add_feedback(self, feedback_text, owner, children):
+        stmt = "INSERT INTO feedback (observations, owner, children) VALUES (?, ?, ?)"
+        args = (feedback_text, owner, children)
+        self.conn.execute(stmt, args)
+        self.conn.commit()
     #
     # # removing delete function temporarily
     # # # takes the text for an feedback and removes it from the database
@@ -44,11 +45,11 @@ class DBHelper:
     # #     self.conn.execute(stmt, args)
     # #     self.conn.commit()
     #
-    # # check syntax
-    # def get_feedback(self, owner, children, subjects):
-    #     stmt = "SELECT observations FROM feedback WHERE owner = (?) AND children = (?) AND subjects = (?)"
-    #     args = (owner, children, subjects, )
-    #     return [x[0] for x in self.conn.execute(stmt, args)]
+    # check syntax
+    def get_feedback(self, owner, children):
+        stmt = "SELECT observations FROM feedback WHERE owner = (?) AND children = (?)"
+        args = (owner, children )
+        return [x[0] for x in self.conn.execute(stmt, args)]
     #
     # def get_children(self, owner):
     #     stmt = "SELECT children FROM feedback WHERE owner = (?)"
