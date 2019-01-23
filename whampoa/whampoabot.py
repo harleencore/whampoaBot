@@ -84,7 +84,7 @@ def handle_updates(updates):
                 db.add_child(text, chat)
                 add = False
             if feedback_mode:
-                send_message("It worked!")
+                send_message("It worked!", chat)
                 feedback_mode = False
 
         except KeyError:
