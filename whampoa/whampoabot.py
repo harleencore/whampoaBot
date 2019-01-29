@@ -82,13 +82,14 @@ def handle_updates(updates):
                     add = True
                 if  text == "/view_feedback":
                     if child:
-                        feedback = db.get_feedback(chat, child)
+                        feedback = db.get_feedback(chat, child)[0]
+                        print(feedback)
                         send_message(feedback, chat)
             else:
                 db.add_child(text, chat)
                 add = False
             if feedback_mode:
-                db.add_feedback(text, chat, child)
+                db.add_feedback(text + "feedback", chat, child)
                 send_message("It worked!", chat)
                 feedback_mode = False
 
