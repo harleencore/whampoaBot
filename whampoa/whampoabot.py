@@ -74,7 +74,7 @@ def handle_updates(updates):
                     keyboard = build_items_keyboard(children)
                     send_message("Select a child to submit feedback for", chat, keyboard)
                 elif text in children:
-                    send_message("Sending feedback for: " + text, chat)
+                    send_message("Please enter feedback for " + text, chat)
                     child = text
                     feedback_mode = True
                 if text == "/add_child":
@@ -82,6 +82,7 @@ def handle_updates(updates):
                     add = True
                 if  text == "/view_feedback":
                     if child:
+                        send_message("Showing feedback for "+ child, chat)
                         feedback = db.get_feedback(chat, child)
                         message = "\n".join(feedback)
                         send_message(message, chat)
@@ -92,10 +93,10 @@ def handle_updates(updates):
                 print (text)
                 print (child)
                 if text in children:
-                    print("trying for", text)
+                    print("Submitting feedback for:", text)
                 else:
                     db.add_feedback(text, chat, child)
-                    send_message("It worked!", chat)
+                    send_message("Feedback saved!", chat)
                     feedback_mode = False
 
 
