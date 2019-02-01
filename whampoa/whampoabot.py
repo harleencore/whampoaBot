@@ -86,6 +86,8 @@ def handle_updates(updates):
                         feedback = db.get_feedback(chat, child)
                         message = "\n".join(feedback)
                         send_message(message, chat)
+                    else:
+                        send_message("Child not selected.", chat)
             else:
                 db.add_child(text, chat)
                 add = False
