@@ -70,13 +70,22 @@ def handle_updates(updates):
             chat = update["message"]["chat"]["id"]
             children = db.get_children(chat)
             if not add:
-                if text == "/feedback":
+                if text == "/help":
+                    help_message = ''' Welcome to the Whampoa feedback bot! Here are the commands you'll need:
+                    /send_feedback : submit feedback for a child
+                    /view_feedback : view feedback for a child
+                    /set_child : set the child you want to work with
+                    /add_child : add a child to the database'''
+                    send_message(help_message, chat)
+                if text == "/send_feedback":
                     keyboard = build_items_keyboard(children)
                     send_message("Select a child to submit feedback for", chat, keyboard)
+
                 elif text in children:
                     send_message("Please enter feedback for " + text, chat)
                     child = text
                     feedback_mode = True
+
                 if text == "/add_child":
                     send_message("Please enter name", chat)
                     add = True
