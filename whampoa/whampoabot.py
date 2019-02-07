@@ -71,13 +71,13 @@ def handle_updates(updates):
             children = db.get_children(chat)
             if not add:
                 if text == "/help":
-                    help_message = ''' Welcome to the Whampoa feedback bot! Here are the commands you'll need:
-                    /send_feedback : submit feedback for a child
-                    /view_feedback : view feedback for a child
-                    /set_child : set the child you want to work with
-                    /add_child : add a child to the database'''
+                    help_message = ("Welcome to the Whampoa feedback bot! Here are the commands you'll need:\n"
+                    "/sendFeedback : submit feedback for a child\n"
+                    "/viewFeedback : view feedback for a child\n"
+                    "/setChild : set the child you want to work with\n"
+                    "/addChild : add a child to the database")
                     send_message(help_message, chat)
-                if text == "/send_feedback":
+                if text == "/sendFeedback":
                     keyboard = build_items_keyboard(children)
                     send_message("Select a child to submit feedback for", chat, keyboard)
 
@@ -86,10 +86,10 @@ def handle_updates(updates):
                     child = text
                     feedback_mode = True
 
-                if text == "/add_child":
+                if text == "/addChild":
                     send_message("Please enter name", chat)
                     add = True
-                if  text == "/view_feedback":
+                if  text == "/viewFeedback":
                     if child:
                         send_message("Showing feedback for "+ child, chat)
                         feedback = db.get_feedback(chat, child)
@@ -98,7 +98,7 @@ def handle_updates(updates):
                     else:
                         send_message("Child not selected.", chat)
             else:
-                db.add_child(text, chat)
+                db.addChild(text, chat)
                 add = False
             if feedback_mode:
                 print (text)
