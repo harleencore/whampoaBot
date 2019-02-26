@@ -9,9 +9,10 @@ TOKEN = "679424726:AAFhyVf602gZxaS0pEIfyiVwqOA7KASWbmw"
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
 
-add = False
+add_child = False
 child = ""
 feedback_mode = False
+admin_mode = False
 
 # download content from URL and give us a string
 def get_url(url):
@@ -61,35 +62,50 @@ def get_last_update_id(updates):
     return max(update_ids)
 
 def handle_updates(updates):
-    global add
+    global add_child
     global child
     global feedback_mode
+    global admin_mode
     for update in updates["result"]:
         try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
             children = db.get_children(chat)
-            if not add:
+            if not admin_mode:
+
                 if text == "/help":
-                    help_message = ("Welcome to the Whampoa feedback bot! Here are the commands you'll need:\n"
+                    help_message = ("Welcome to the Whampoa feedback bot! Here are the commands you'll need:\n\n"
                     "/sendFeedback : submit feedback for a child\n"
                     "/viewFeedback : view feedback for a child\n"
                     "/setChild : set the child you want to work with\n"
                     "/addChild : add a child to the database")
                     send_message(help_message, chat)
+
+                if text == "/setChild":
+                    if children:
+                        keyboard = build_items_keyboard(children)
+                        send_message("Select a child", chat, keyboard)
+                    else:
+                        send_message("There are currerntly no children in the database", chat)
+
                 if text == "/sendFeedback":
-                    keyboard = build_items_keyboard(children)
-                    send_message("Select a child to submit feedback for", chat, keyboard)
+                    if child:
+                        send_message("Please enter feedback for " + child, chat)
+                        admin_mode = True
+                        feedback_mode = True
+                    else:
+                        send_message("Child not selected.", chat)
 
                 elif text in children:
-                    send_message("Please enter feedback for " + text, chat)
+                    send_message("Child set to: " + text, chat)
                     child = text
-                    feedback_mode = True
 
                 if text == "/addChild":
                     send_message("Please enter name", chat)
-                    add = True
-                if  text == "/viewFeedback":
+                    admin_mode = True
+                    add_child = True
+
+                if text == "/viewFeedback":
                     if child:
                         send_message("Showing feedback for "+ child, chat)
                         feedback = db.get_feedback(chat, child)
@@ -98,17 +114,18 @@ def handle_updates(updates):
                     else:
                         send_message("Child not selected.", chat)
             else:
-                db.addChild(text, chat)
-                add = False
-            if feedback_mode:
-                print (text)
-                print (child)
-                if text in children:
-                    print("Submitting feedback for:", text)
-                else:
+
+                if add_child:
+                    db.add_child(text, chat)
+                    add_child = False
+                    admin_mode = False
+                    send_message(text+" added to datbase", chat)
+
+                if feedback_mode:
                     db.add_feedback(text, chat, child)
                     send_message("Feedback saved!", chat)
                     feedback_mode = False
+                    admin_mode = False
 
 
         except KeyError:
