@@ -31,9 +31,9 @@ class DBHelper:
         self.conn.commit()
 
     # takes the text for the feedback and inserts it into the db table
-    def add_feedback(self, feedback_text, owner, children):
-        stmt = "INSERT INTO feedback (observations, owner, children) VALUES (?, ?, ?)"
-        args = (feedback_text, owner, children)
+    def add_feedback(self, feedback_text, owner, children, subjects):
+        stmt = "INSERT INTO feedback (observations, owner, children, subjects) VALUES (?, ?, ?, ?)"
+        args = (feedback_text, owner, children, subjects)
         self.conn.execute(stmt, args)
         self.conn.commit()
     #
@@ -46,7 +46,12 @@ class DBHelper:
     # #     self.conn.commit()
     #
     # check syntax
-    def get_feedback(self, owner, children):
+    def get_feedback(self, owner, children, subjects):
+        stmt = "SELECT observations FROM feedback WHERE owner = (?) AND children = (?) AND subjects = (?)"
+        args = (owner, children, subjects )
+        return [x[0] for x in self.conn.execute(stmt, args)]
+
+    def get_all_feedback(self, owner, children):
         stmt = "SELECT observations FROM feedback WHERE owner = (?) AND children = (?)"
         args = (owner, children )
         return [x[0] for x in self.conn.execute(stmt, args)]

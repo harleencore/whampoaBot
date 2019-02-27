@@ -13,6 +13,8 @@ add_child = False
 child = ""
 feedback_mode = False
 admin_mode = False
+subjects = ["Math", "Science", "English", "All"]
+subject = "All"
 
 # download content from URL and give us a string
 def get_url(url):
@@ -66,11 +68,14 @@ def handle_updates(updates):
     global child
     global feedback_mode
     global admin_mode
+    global subjects
+    global subject
     for update in updates["result"]:
         try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
             children = db.get_children(chat)
+
             if not admin_mode:
 
                 if text == "/help":
@@ -78,19 +83,21 @@ def handle_updates(updates):
                     "/sendFeedback : submit feedback for a child\n"
                     "/viewFeedback : view feedback for a child\n"
                     "/setChild : set the child you want to work with\n"
-                    "/addChild : add a child to the database")
+                    "/addChild : add a child to the database\n"
+                    "/viewChildren : view all children in the database\n"
+                    "/setSubject : set subject")
                     send_message(help_message, chat)
 
-                if text == "/setChild":
+                elif text == "/setChild":
                     if children:
                         keyboard = build_items_keyboard(children)
                         send_message("Select a child", chat, keyboard)
                     else:
                         send_message("There are currerntly no children in the database", chat)
 
-                if text == "/sendFeedback":
+                elif text == "/sendFeedback":
                     if child:
-                        send_message("Please enter feedback for " + child, chat)
+                        send_message("Please enter " + subject + " feedback for " + child, chat)
                         admin_mode = True
                         feedback_mode = True
                     else:
@@ -100,19 +107,36 @@ def handle_updates(updates):
                     send_message("Child set to: " + text, chat)
                     child = text
 
-                if text == "/addChild":
+                elif text in subjects:
+                    send_message("Subject set to: " + text, chat)
+                    subject = text
+
+                elif text == "/addChild":
                     send_message("Please enter name", chat)
                     admin_mode = True
                     add_child = True
 
-                if text == "/viewFeedback":
+                elif text == "/viewFeedback":
                     if child:
-                        send_message("Showing feedback for "+ child, chat)
-                        feedback = db.get_feedback(chat, child)
+                        send_message("Showing " + subject + " feedback for "+ child, chat)
+                        if subject is not "All":
+                            feedback = db.get_feedback(chat, child, subject)
+
+                        else:
+                            feedback = db.get_all_feedback(chat, child)
+
                         message = "\n".join(feedback)
                         send_message(message, chat)
                     else:
                         send_message("Child not selected.", chat)
+
+                elif text == "/viewChildren":
+                    message = '\n'.join(children)
+                    send_message(message, chat)
+
+                elif text == "/setSubject":
+                    keyboard = build_items_keyboard(subjects)
+                    send_message("Select a subject", chat, keyboard)
             else:
 
                 if add_child:
@@ -122,7 +146,7 @@ def handle_updates(updates):
                     send_message(text+" added to datbase", chat)
 
                 if feedback_mode:
-                    db.add_feedback(text, chat, child)
+                    db.add_feedback(text, chat, child, subject)
                     send_message("Feedback saved!", chat)
                     feedback_mode = False
                     admin_mode = False
