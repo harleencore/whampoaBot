@@ -13,8 +13,8 @@ add_child = False
 child = ""
 feedback_mode = False
 admin_mode = False
-subjects = ["Math", "Science", "English", "All"]
-subject = "All"
+subjects = ["Math", "Science", "English", "General"]
+subject = "General"
 
 # download content from URL and give us a string
 def get_url(url):
@@ -85,69 +85,107 @@ def handle_updates(updates):
                     "/setChild : set the child you want to work with\n"
                     "/addChild : add a child to the database\n"
                     "/viewChildren : view all children in the database\n"
-                    "/setSubject : set subject")
+                    "/setSubject : set subject\n"
+                    "/commands : quick access to most important commands\n"
+                    "/cancel : cancel adding comments/ child to database")
                     send_message(help_message, chat)
+
+                if text == "/cancel":
+                    send_message("`process cancelled.`", chat)
+
+                if text == "/commands":
+                    commands = ("\n"
+                    "/setSubject\n"
+                    "/setChild\n"
+                    "/sendFeedback\n"
+                    "/viewFeedback\n"
+                    "/cancel")
+                    send_message(commands, chat)
 
                 elif text == "/setChild":
                     if children:
                         keyboard = build_items_keyboard(children)
-                        send_message("Select a child", chat, keyboard)
+                        send_message("`Select a child`", chat, keyboard)
                     else:
-                        send_message("There are currerntly no children in the database", chat)
+                        send_message("`There are currerntly no children in the database`", chat)
 
                 elif text == "/sendFeedback":
                     if child:
-                        send_message("Please enter " + subject + " feedback for " + child, chat)
+                        send_message("`Please enter " + subject + " feedback for " + child + "`", chat)
                         admin_mode = True
                         feedback_mode = True
                     else:
-                        send_message("Child not selected.", chat)
+                        send_message("`Child not selected.`", chat)
 
                 elif text in children:
-                    send_message("Child set to: " + text, chat)
+                    send_message("`Child set to: " + text + "`", chat)
                     child = text
 
                 elif text in subjects:
-                    send_message("Subject set to: " + text, chat)
+                    send_message("`Subject set to: " + text + "`", chat)
                     subject = text
 
                 elif text == "/addChild":
-                    send_message("Please enter name", chat)
+                    send_message("`Please enter name`", chat)
                     admin_mode = True
                     add_child = True
 
                 elif text == "/viewFeedback":
                     if child:
-                        send_message("Showing " + subject + " feedback for "+ child, chat)
-                        if subject is not "All":
+                        send_message("`Showing " + subject + " feedback for "+ child + "`", chat)
+
+                        message = ""
+                        if subject is not "General":
                             feedback = db.get_feedback(chat, child, subject)
 
                         else:
-                            feedback = db.get_all_feedback(chat, child)
+                            feedback_array = []
+                            for subject in subjects:
+                                feedback_array.append(db.get_feedback(chat, child, subject))
 
-                        message = "\n".join(feedback)
+                            feedback_check = False
+                            for i in range (len(subjects)-1):
+                                if feedback_array[i]:
+                                    feedback_check = True
+                                    message += "*" + subjects[i] + "*\n" + "\n".join(feedback_array[i]) + "\n\n"
+                            if feedback_array[3]:
+                                message += "*General*\n" + "\n".join(feedback_array[3])
+                            else:
+                                if not feedback_check:
+                                    message = "`Error! No feedback for this child yet!`"
+
+                        if not message:
+                            message = "\n".join(feedback)
                         send_message(message, chat)
                     else:
-                        send_message("Child not selected.", chat)
+                        send_message("`Child not selected.`", chat)
 
                 elif text == "/viewChildren":
                     message = '\n'.join(children)
+                    if not message:
+                        message = "`There are no children in the database!`"
                     send_message(message, chat)
 
                 elif text == "/setSubject":
                     keyboard = build_items_keyboard(subjects)
-                    send_message("Select a subject", chat, keyboard)
+                    send_message("`Select a subject`", chat, keyboard)
             else:
+
+                if text == "/cancel":
+                    send_message("`process cancelled`", chat)
+                    add_child = False
+                    admin_mode = False
+                    feedback_mode = False
 
                 if add_child:
                     db.add_child(text, chat)
                     add_child = False
                     admin_mode = False
-                    send_message(text+" added to datbase", chat)
+                    send_message("`"+ text+" added to database`", chat)
 
                 if feedback_mode:
                     db.add_feedback(text, chat, child, subject)
-                    send_message("Feedback saved!", chat)
+                    send_message("`Feedback saved!`", chat)
                     feedback_mode = False
                     admin_mode = False
 
