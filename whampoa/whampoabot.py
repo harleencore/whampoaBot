@@ -8,13 +8,22 @@ db = DBHelper()
 TOKEN = "679424726:AAFhyVf602gZxaS0pEIfyiVwqOA7KASWbmw"
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
-
-add_child = False
-child = ""
-feedback_mode = False
-admin_mode = False
 subjects = ["Math", "Science", "English", "General"]
-subject = "General"
+add_child = {}
+children = {}
+feedback_mode = {}
+admin_mode = {}
+subjects_dict = {}
+
+volunteers = db.get_volunteers()
+
+for chat in volunteers:
+
+    children[chat] = ""
+    feedback_mode[chat] = False
+    admin_mode[chat] = False
+    subjects_dict[chat] = "General"
+    add_child[chat] = False
 
 # download content from URL and give us a string
 def get_url(url):
@@ -65,129 +74,159 @@ def get_last_update_id(updates):
 
 def handle_updates(updates):
     global add_child
-    global child
+    global children
     global feedback_mode
     global admin_mode
+    global subjects_dict
     global subjects
-    global subject
+    global volunteers
     for update in updates["result"]:
+        print(update)
         try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
-            children = db.get_children(chat)
+            children_list = db.get_children()
 
-            if not admin_mode:
+            if chat not in volunteers:
 
-                if text == "/help":
-                    help_message = ("Welcome to the Whampoa feedback bot! Here are the commands you'll need:\n\n"
-                    "/sendFeedback : submit feedback for a child\n"
-                    "/viewFeedback : view feedback for a child\n"
-                    "/setChild : set the child you want to work with\n"
-                    "/addChild : add a child to the database\n"
-                    "/viewChildren : view all children in the database\n"
-                    "/setSubject : set subject\n"
-                    "/commands : quick access to most important commands\n"
-                    "/cancel : cancel adding comments/ child to database")
-                    send_message(help_message, chat)
+                if text == "harleentestpassword":
+                    db.add_volunteer(chat)
+                    children[chat] = ""
+                    feedback_mode[chat] = False
+                    admin_mode[chat] = False
+                    subjects_dict[chat] = "General"
+                    add_child[chat] = False
+                    send_message("`ACCESS GRANTED!`", chat)
+                else:
+                    passwd_msg = "`Please enter password to access Whampoa LIFE database.`"
+                    send_message(passwd_msg, chat)
 
-                if text == "/cancel":
-                    send_message("`process cancelled.`", chat)
 
-                if text == "/commands":
-                    commands = ("\n"
-                    "/setSubject\n"
-                    "/setChild\n"
-                    "/sendFeedback\n"
-                    "/viewFeedback\n"
-                    "/cancel")
-                    send_message(commands, chat)
 
-                elif text == "/setChild":
-                    if children:
-                        keyboard = build_items_keyboard(children)
-                        send_message("`Select a child`", chat, keyboard)
-                    else:
-                        send_message("`There are currerntly no children in the database`", chat)
-
-                elif text == "/sendFeedback":
-                    if child:
-                        send_message("`Please enter " + subject + " feedback for " + child + "`", chat)
-                        admin_mode = True
-                        feedback_mode = True
-                    else:
-                        send_message("`Child not selected.`", chat)
-
-                elif text in children:
-                    send_message("`Child set to: " + text + "`", chat)
-                    child = text
-
-                elif text in subjects:
-                    send_message("`Subject set to: " + text + "`", chat)
-                    subject = text
-
-                elif text == "/addChild":
-                    send_message("`Please enter name`", chat)
-                    admin_mode = True
-                    add_child = True
-
-                elif text == "/viewFeedback":
-                    if child:
-                        send_message("`Showing " + subject + " feedback for "+ child + "`", chat)
-
-                        message = ""
-                        if subject is not "General":
-                            feedback = db.get_feedback(chat, child, subject)
-
-                        else:
-                            feedback_array = []
-                            for subject in subjects:
-                                feedback_array.append(db.get_feedback(chat, child, subject))
-
-                            feedback_check = False
-                            for i in range (len(subjects)-1):
-                                if feedback_array[i]:
-                                    feedback_check = True
-                                    message += "*" + subjects[i] + "*\n" + "\n".join(feedback_array[i]) + "\n\n"
-                            if feedback_array[3]:
-                                message += "*General*\n" + "\n".join(feedback_array[3])
-                            else:
-                                if not feedback_check:
-                                    message = "`Error! No feedback for this child yet!`"
-
-                        if not message:
-                            message = "\n".join(feedback)
-                        send_message(message, chat)
-                    else:
-                        send_message("`Child not selected.`", chat)
-
-                elif text == "/viewChildren":
-                    message = '\n'.join(children)
-                    if not message:
-                        message = "`There are no children in the database!`"
-                    send_message(message, chat)
-
-                elif text == "/setSubject":
-                    keyboard = build_items_keyboard(subjects)
-                    send_message("`Select a subject`", chat, keyboard)
             else:
 
-                if text == "/cancel":
-                    send_message("`process cancelled`", chat)
-                    add_child = False
-                    admin_mode = False
-                    feedback_mode = False
+                print(admin_mode)
+                print(add_child)
+                print(feedback_mode)
+                print(children)
+                print(subjects_dict)
 
-                if add_child:
-                    db.add_child(text, chat)
-                    add_child = False
-                    admin_mode = False
-                    send_message("`"+ text+" added to database`", chat)
 
-                if feedback_mode:
-                    db.add_feedback(text, chat, child, subject)
-                    send_message("`Feedback saved!`", chat)
-                    feedback_mode = False
-                    admin_mode = False
+
+                if not admin_mode[chat]:
+
+                    if text == "/help":
+                        help_message = ("Welcome to the Whampoa feedback bot! Here are the commands you'll need:\n\n"
+                        "/sendFeedback : submit feedback for a child\n"
+                        "/viewFeedback : view feedback for a child\n"
+                        "/setChild : set the child you want to work with\n"
+                        "/addChild : add a child to the database\n"
+                        "/viewChildren : view all children in the database\n"
+                        "/setSubject : set subject\n"
+                        "/commands : quick access to most important commands\n"
+                        "/cancel : cancel adding comments/ child to database")
+                        send_message(help_message, chat)
+
+                    if text == "/cancel":
+                        send_message("`process cancelled.`", chat)
+
+                    if text == "/commands":
+                        commands = ("\n"
+                        "/subject\n"
+                        "/set\n"
+                        "/send\n"
+                        "/view\n"
+                        "/x")
+                        send_message(commands, chat)
+
+                    elif text == "/setChild" or text == "/set" or text =="/SET" or text =="/Set":
+                        if children_list:
+                            keyboard = build_items_keyboard(children_list)
+                            send_message("`Select a child`", chat, keyboard)
+                        else:
+                            send_message("`There are currerntly no children in the database`", chat)
+
+                    elif text == "/sendFeedback" or text == "/send" or text =="/Send" or text=="/SEND":
+                        if children[chat]:
+                            send_message("`Please enter " + subjects_dict[chat] + " feedback for " + children[chat] + "`", chat)
+                            admin_mode[chat] = True
+                            feedback_mode[chat] = True
+                        else:
+                            send_message("`Child not selected.`", chat)
+
+                    elif text in children_list:
+                        send_message("`Child set to: " + text + "`", chat)
+                        children[chat] = text
+
+                    elif text in subjects:
+                        send_message("`Subject set to: " + text + "`", chat)
+                        subjects_dict[chat] = text
+
+                    elif text == "/addChild" or text == "/add" or text =="/Add":
+                        send_message("`Please enter name`", chat)
+                        admin_mode[chat] = True
+                        add_child[chat] = True
+
+                    elif text == "/viewFeedback" or text == "/view" or text == "/View" or text =="/feedback" or text == "/Feedback":
+                        if children[chat]:
+                            send_message("`Showing " + subjects_dict[chat] + " feedback for "+ children[chat] + "`", chat)
+
+                            message = ""
+                            if subjects_dict[chat] != "General":
+                                feedback = db.get_feedback(children[chat], subjects_dict[chat])
+
+                            else:
+                                feedback_array = []
+                                for subject in subjects:
+                                    feedback_array.append(db.get_feedback(children[chat], subject))
+
+                                feedback_check = False
+                                for i in range (len(subjects)-1):
+                                    if feedback_array[i]:
+                                        feedback_check = True
+                                        message += "*" + subjects[i] + "*\n" + "\n".join(feedback_array[i]) + "\n\n"
+                                if feedback_array[3]:
+                                    message += "*General*\n" + "\n".join(feedback_array[3])
+                                else:
+                                    if not feedback_check:
+                                        message = "`Error! No feedback for this child yet!`"
+
+                            if not message:
+                                message = "\n".join(feedback)
+                            if not message:
+                                message = "`Error! No feedback for this subject yet!`"
+                            send_message(message, chat)
+                        else:
+                            send_message("`Child not selected.`", chat)
+
+                    elif text == "/viewChildren" or text == "/children" or text == "/Children":
+                        message = '\n'.join(children_list)
+                        if not message:
+                            message = "`There are no children in the database!`"
+                        send_message(message, chat)
+
+                    elif text == "/setSubject" or text == "/subject" or text == "/subj":
+                        keyboard = build_items_keyboard(subjects)
+                        send_message("`Select a subject`", chat, keyboard)
+                else:
+
+                    if text == "/cancel" or text == "/CANCEL" or text == "Cancel" or text == "/x":
+                        send_message("`process cancelled`", chat)
+                        add_child[chat] = False
+                        admin_mode[chat] = False
+                        feedback_mode[chat] = False
+
+                    if add_child[chat]:
+                        db.add_child(text)
+                        add_child[chat] = False
+                        admin_mode[chat] = False
+                        send_message("`"+ text+" added to database`", chat)
+
+                    if feedback_mode[chat]:
+                        db.add_feedback(text, children[chat], subjects_dict[chat])
+                        send_message("`Feedback saved!`", chat)
+                        feedback_mode[chat] = False
+                        admin_mode[chat] = False
 
 
         except KeyError:
