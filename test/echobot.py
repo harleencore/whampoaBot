@@ -2,10 +2,8 @@ import json # parse json responses from telegram into python dictionaries
 import requests # make web requests using python, interact with telegram API
 import time
 import urllib
-from dbhelper import DBHelper
-db = DBHelper()
 
-TOKEN = "586549666:AAFe0XqC0CPXVNGaVrCTs-zpT5TA2xr4SaE"
+TOKEN = "679424726:AAFhyVf602gZxaS0pEIfyiVwqOA7KASWbmw"
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
 
@@ -46,14 +44,9 @@ def get_last_chat_id_and_text(updates):
 
 
 # takes text message and chat_id of intended recipient + sends msg
-def send_message(text, chat_id, reply_markup=None):
+def send_message(text, chat_id):
     text = urllib.parse.quote_plus(text)
-    url = URL + "sendMessage?text={}&chat_id={}&parse_mode=Markdown".format(text, chat_id)
-    if reply_markup:
-        # since we built the entire keyboard object in build_keyboard(),
-        # we can pass it along to telegram in this function whenever neccesary
-        # reply_markup has the keyboard ALONG WITH vals like one_time_keyboard = True
-        url += "&reply_markup={}".format(reply_markup)
+    url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
     get_url(url)
 
 # calculates highest ID of all the updates
@@ -64,54 +57,26 @@ def get_last_update_id(updates):
         update_ids.append(int(update["update_id"]))
     return max(update_ids)
 
-def handle_updates(updates):
-    for update in updates["result"]: # loop through each update
+# echo reply for each message that we receieve
+def echo_all(updates):
+    for update in updates["result"]:
         try:
-            # grab text and chat components
-            text = update["message"]["text"] # check message text
-            chat = update["message"]["chat"]["id"] # check user who sent msg
-            items = db.get_items(chat)
-            if text == "/generate":
-                keyboard = build_keyboard(items)
-                send_message("Select a category", chat, keyboard)
-            elif text in categories:
-                db.get_scneario(text) # write this code!
-            elif text == "/start":
-                send_message("Welcome to your the improvBot! Send /generate to start the fun!", chat)
-            elif text.startswith("/"):
-                continue
-            else:
-                category =
-                db.add_item(text, chat) # if item not in list, add it
-                items = db.get_items(chat) # update items variable
-                message = "\n".join(items) # message is a list of all items
-                send_message(message, chat) # print (send) updated list
-        except KeyError:
-            pass
-
-def build_keyboard(items):
-    # construct a list of items:
-    keyboard = [[item] for item in items] # turn each item into a list
-    # each sub-list in the keyboard list will be an entire row of the keyboard
-    # one_time_keyboard indicates that the keyboard should disappear once
-    # the user has made a choice
-    reply_markup = {"keyboard":keyboard, "one_time_keyboard": True}
-    return json.dumps(reply_markup) # convert python dict into json string
-    # telegrm's API expects this!
-
-
+            text = update["message"]["text"]
+            chat = update["message"]["chat"]["id"]
+            send_message(text, chat)
+        except Exception as e:
+            print(e)
 
 
 # this is so we can import our functions into another script
 # without running anything
 def main():
-    db.setup()
     last_update_id = None
     while True:
         updates = get_updates(last_update_id)
         if len(updates["result"]) > 0:
             last_update_id = get_last_update_id(updates) + 1
-            handle_updates(updates)
+            echo_all(updates)
         time.sleep(0.5)
 
 if __name__ == '__main__':
