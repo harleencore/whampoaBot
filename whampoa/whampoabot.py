@@ -2,10 +2,12 @@ import json # parse json responses from telegram into python dictionaries
 import requests # make web requests using python, interact with telegram API
 import time
 import urllib
+import sys
+sys.path.insert(0, 'C:/Users/Harleen/Documents/coding/telegram_bots/db')
 from dbhelper import DBHelper
 db = DBHelper()
 
-TOKEN = "679424726:AAFhyVf602gZxaS0pEIfyiVwqOA7KASWbmw"
+TOKEN = db.token
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
 subjects = ["Math", "Science", "English", "General"]
@@ -15,7 +17,10 @@ feedback_mode = {}
 admin_mode = {}
 subjects_dict = {}
 
-volunteers = db.get_volunteers()
+try:
+    volunteers = db.get_volunteers()
+except:
+    volunteers = []
 
 for chat in volunteers:
 
@@ -81,7 +86,6 @@ def handle_updates(updates):
     global subjects
     global volunteers
     for update in updates["result"]:
-        print(update)
         try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
@@ -89,13 +93,14 @@ def handle_updates(updates):
 
             if chat not in volunteers:
 
-                if text == "harleentestpassword":
+                if text == db.password:
                     db.add_volunteer(chat)
                     children[chat] = ""
                     feedback_mode[chat] = False
                     admin_mode[chat] = False
                     subjects_dict[chat] = "General"
                     add_child[chat] = False
+                    volunteers.append(chat)
                     send_message("`ACCESS GRANTED!`", chat)
                 else:
                     passwd_msg = "`Please enter password to access Whampoa LIFE database.`"
@@ -104,16 +109,20 @@ def handle_updates(updates):
 
 
             else:
-
-                print(admin_mode)
-                print(add_child)
-                print(feedback_mode)
-                print(children)
-                print(subjects_dict)
+            #
+            #     print(admin_mode)
+            #     print(add_child)
+            #     print(feedback_mode)
+            #     print(children)
+            #     print(subjects_dict)
 
 
 
                 if not admin_mode[chat]:
+
+                    if text == "/start":
+                        start_message = "Welcome to the LIFE feedback bot! Send /help to get started."
+                        send_message(start_message, chat)
 
                     if text == "/help":
                         help_message = ("Welcome to the Whampoa feedback bot! Here are the commands you'll need:\n\n"
